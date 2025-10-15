@@ -10,6 +10,7 @@ import {
   references,
 } from "~/lib/bitcoinPaper";
 import { ThemeSettings, type SpacingSettings } from "~/components/ui/ThemeSettings";
+import { ElevenLabsAudioNative } from "~/components/ui/ElevenLabsAudioNative";
 
 /**
  * HomeTab component displays the Bitcoin whitepaper in a beautiful reading format.
@@ -42,6 +43,10 @@ export function HomeTab() {
   const tocPopoverRef = useRef<HTMLDivElement>(null);
   const [tocAnchor, setTocAnchor] = useState<"top" | "bottom">("top");
   const [showFooterControls, setShowFooterControls] = useState(false);
+
+  // Track reference occurrences to generate unique IDs and track first occurrence
+  const refOccurrencesRef = useRef<Record<number, number>>({});
+  const firstRefOccurrenceRef = useRef<Record<number, string>>({});
 
   // Load preferences from localStorage
   useEffect(() => {
@@ -195,9 +200,22 @@ export function HomeTab() {
         ? Number(label.split("-")[0])
         : Number(label);
 
+      // Track occurrence count for this reference
+      const occurrenceCount = refOccurrencesRef.current[anchorTarget] ?? 0;
+      refOccurrencesRef.current[anchorTarget] = occurrenceCount + 1;
+
+      // Generate unique ID for this occurrence
+      const uniqueId = `ref-link-${anchorTarget}-${occurrenceCount}`;
+
+      // Store first occurrence ID
+      if (!firstRefOccurrenceRef.current[anchorTarget]) {
+        firstRefOccurrenceRef.current[anchorTarget] = uniqueId;
+      }
+
       nodes.push(
         <a
           key={`ref-${partIndex++}`}
+          id={uniqueId}
           href={`#reference-${anchorTarget}`}
           className="text-blue-600 dark:text-blue-400 hover:underline"
         >
@@ -435,10 +453,16 @@ export function HomeTab() {
           View Original PDF
           <ExternalLink className="w-3.5 h-3.5" />
         </a>
+        <div className="mt-4 w-full">
+          <ElevenLabsAudioNative
+            publicUserId="c7fa0888ce8d3d7f6f27a113361dcbd6cd738a8b68cef914c0bad17eaadb46a5"
+            projectId="BhzN7EOROKYuLAiJc8Iv"
+          />
+        </div>
       </header>
 
       {/* Abstract */}
-      <section id="abstract" data-section className="mb-10 scroll-mt-2" style={getContainerStyle()}>
+      <section id="abstract" data-section className="mb-10 scroll-mt-20" style={getContainerStyle()}>
         <h2 className={`${headingClasses[fontSize].h2} font-bold mb-4`}>Abstract</h2>
         <p
           className={`${fontSizeClasses[fontSize]} text-gray-800 dark:text-gray-200`}
@@ -454,7 +478,7 @@ export function HomeTab() {
           key={section.id}
           id={section.id}
           data-section
-          className="mb-10 scroll-mt-2"
+          className="mb-10 scroll-mt-20"
           style={getContainerStyle()}
         >
           <h2 className={`${headingClasses[fontSize].h2} font-bold mb-4`}>{section.title}</h2>
@@ -484,7 +508,14 @@ export function HomeTab() {
               style={getTextStyle()}
             >
               <span className="font-medium">[{ref.id}]</span>{" "}
-              {renderReferenceText(ref)}
+              {renderReferenceText(ref)}{" "}
+              <a
+                href={`#${firstRefOccurrenceRef.current[ref.id] || `ref-link-${ref.id}-0`}`}
+                className="text-blue-600 dark:text-blue-400 hover:underline ml-1"
+                title={`Jump back to reference [${ref.id}]`}
+              >
+                ↩
+              </a>
             </li>
           ))}
         </ol>
