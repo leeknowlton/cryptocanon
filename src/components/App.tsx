@@ -101,21 +101,19 @@ export default function App(
       }}
     >
       {/* Header should be full width */}
-      <Header neynarUser={neynarUser} />
+      {/* <Header neynarUser={neynarUser} /> */}
 
       {/* Main content and footer should be centered */}
       <div className="container py-2 pb-20">
-        {/* Main title */}
-        <h1 className="text-2xl font-bold text-center mb-4">{title}</h1>
-
         {/* Tab content rendering */}
-        {currentTab === Tab.Home && <HomeTab />}
+        <HomeTab />
+        {/* {currentTab === Tab.Home && <HomeTab />}
         {currentTab === Tab.Actions && <ActionsTab />}
         {currentTab === Tab.Context && <ContextTab />}
-        {currentTab === Tab.Wallet && <WalletTab />}
+        {currentTab === Tab.Wallet && <WalletTab />} */}
 
         {/* Footer with navigation */}
-        <Footer activeTab={currentTab as Tab} setActiveTab={setActiveTab} showWallet={USE_WALLET} />
+        {/* <Footer activeTab={currentTab as Tab} setActiveTab={setActiveTab} showWallet={USE_WALLET} /> */}
       </div>
     </div>
   );

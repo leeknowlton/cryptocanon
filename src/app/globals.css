@@ -24,22 +24,18 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Font family classes */
+html.font-sans body {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html.font-serif body {
+  font-family: "Georgia", "Times New Roman", "Iowan Old Style", "Apple Garamond", serif;
 }
 
+/* Default to sans-serif */
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: 'Inter', Helvetica, Arial, sans-serif;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
 }
 
 * {
@@ -55,6 +51,16 @@ body {
   :root {
     --radius: 0.5rem;
   }
+
+  /* Reading mode styles */
+  html.reading-page {
+    /* Page mode could add pagination, max-width constraints, etc. */
+    /* For now, it's the same as scroll but could be enhanced */
+  }
+
+  html.reading-scroll {
+    /* Default scrolling behavior */
+  }
 }
 
 @layer components {
@@ -62,39 +68,13 @@ body {
   .container {
     @apply mx-auto max-w-md px-4;
   }
-  
+
   .container-wide {
     @apply mx-auto max-w-lg px-4;
   }
-  
+
   .container-narrow {
     @apply mx-auto max-w-sm px-4;
-  }
-
-  /* Global card styles */
-  .card {
-    @apply bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm;
-  }
-  
-  .card-primary {
-    @apply bg-primary/10 border-primary/20;
-  }
-
-  /* Global button styles */
-  .btn {
-    @apply inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none;
-  }
-  
-  .btn-primary {
-    @apply bg-primary text-white hover:bg-primary-dark focus:ring-primary;
-  }
-  
-  .btn-secondary {
-    @apply bg-secondary text-gray-900 hover:bg-gray-200 focus:ring-gray-500 dark:bg-secondary-dark dark:text-gray-100 dark:hover:bg-gray-600;
-  }
-  
-  .btn-outline {
-    @apply border border-gray-300 bg-transparent hover:bg-gray-50 focus:ring-gray-500 dark:border-gray-600 dark:hover:bg-gray-800;
   }
 
   /* Global input styles */
@@ -106,7 +86,7 @@ body {
   .spinner {
     @apply animate-spin rounded-full border-2 border-gray-300 border-t-primary;
   }
-  
+
   .spinner-primary {
     @apply animate-spin rounded-full border-2 border-white border-t-transparent;
   }

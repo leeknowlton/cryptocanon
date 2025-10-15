@@ -43,24 +43,23 @@ export function SafeFarcasterSolanaProvider({ endpoint, children }: SafeFarcaste
     };
   }, [isClient]);
 
+  // Suppress Solana provider errors in development
   useEffect(() => {
-    let errorShown = false;
-    const origError = console.error;
-    console.error = (...args) => {
+    if (typeof window === 'undefined') return;
+
+    const handleError = (event: ErrorEvent) => {
       if (
-        typeof args[0] === "string" &&
-        args[0].includes("WalletConnectionError: could not get Solana provider")
+        event.message?.includes("WalletConnectionError") ||
+        event.message?.includes("could not get Solana provider")
       ) {
-        if (!errorShown) {
-          origError(...args);
-          errorShown = true;
-        }
-        return;
+        event.preventDefault();
+        event.stopPropagation();
       }
-      origError(...args);
     };
+
+    window.addEventListener('error', handleError);
     return () => {
-      console.error = origError;
+      window.removeEventListener('error', handleError);
     };
   }, []);
 

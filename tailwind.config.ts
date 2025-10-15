@@ -2,18 +2,12 @@ import type { Config } from "tailwindcss";
 
 /**
  * Tailwind CSS Configuration
- * 
- * This configuration centralizes all theme colors for the mini app.
- * To change the app's color scheme, simply update the 'primary' color value below.
- * 
- * Example theme changes:
- * - Blue theme: primary: "#3182CE"
- * - Green theme: primary: "#059669" 
- * - Red theme: primary: "#DC2626"
- * - Orange theme: primary: "#EA580C"
+ *
+ * This configuration includes DaisyUI for theme management.
+ * Light and dark themes are configured below.
  */
 export default {
-    darkMode: "media",
+    darkMode: ["class", '[data-theme="dark"]'],
     content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -26,11 +20,11 @@ export default {
   			primary: "#8b5cf6", // Main brand color
   			"primary-light": "#a78bfa", // For hover states
   			"primary-dark": "#7c3aed", // For active states
-  			
+
   			// Secondary colors for backgrounds and text
   			secondary: "#f8fafc", // Light backgrounds
   			"secondary-dark": "#334155", // Dark backgrounds
-  			
+
   			// Legacy CSS variables for backward compatibility
   			background: 'var(--background)',
   			foreground: 'var(--foreground)'
@@ -56,5 +50,12 @@ export default {
   		}
   	}
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [require("tailwindcss-animate"), require("daisyui")],
+  daisyui: {
+    themes: ["light", "dark"],
+    darkTheme: "dark",
+    base: true,
+    styled: true,
+    utils: true,
+  },
 } satisfies Config;
