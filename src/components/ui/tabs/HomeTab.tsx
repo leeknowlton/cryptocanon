@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import type { ReactNode } from "react";
-import { ExternalLink, List } from "lucide-react";
+import { useMiniApp } from "@neynar/react";
+import { ExternalLink, List, Quote } from "lucide-react";
 import {
   paperMetadata,
   abstract,
@@ -14,6 +15,7 @@ import {
   type SpacingSettings,
 } from "~/components/ui/ThemeSettings";
 import { ElevenLabsAudioNative } from "~/components/ui/ElevenLabsAudioNative";
+import { APP_URL } from "~/lib/constants";
 
 /**
  * HomeTab component displays the Bitcoin whitepaper in a beautiful reading format.
@@ -42,12 +44,33 @@ export function HomeTab() {
     wordSpacing: 0,
     margins: 0,
   });
+  const [showQuoteMenu, setShowQuoteMenu] = useState(false);
+  const [quoteText, setQuoteText] = useState("");
+  const [quoteWarning, setQuoteWarning] = useState<string | null>(null);
+  const [quoteMenuPosition, setQuoteMenuPosition] = useState<{
+    top: number;
+    left: number;
+  } | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
   const tocButtonRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const tocPopoverRef = useRef<HTMLDivElement>(null);
   const [tocAnchor, setTocAnchor] = useState<"top" | "bottom">("top");
   const [showFooterControls, setShowFooterControls] = useState(false);
+  const { actions } = useMiniApp();
+  const MIN_QUOTE_LENGTH = 16;
+  const MAX_QUOTE_LENGTH = 280;
+
+  const resetQuoteSelection = useCallback(() => {
+    setShowQuoteMenu(false);
+    setQuoteText("");
+    setQuoteWarning(null);
+    setQuoteMenuPosition(null);
+    if (typeof window !== "undefined") {
+      const selection = window.getSelection();
+      selection?.removeAllRanges();
+    }
+  }, []);
 
   // Track reference occurrences to generate unique IDs and track first occurrence
   const refOccurrencesRef = useRef<Record<number, number>>({});
@@ -180,6 +203,104 @@ export function HomeTab() {
     };
   }, [showToc]);
 
+  useEffect(() => {
+    const handleSelection = () => {
+      const selection = window.getSelection();
+      if (!selection || selection.isCollapsed) {
+        return;
+      }
+
+      const text = selection.toString().replace(/\s+/g, " ").trim();
+      if (!text) {
+        return;
+      }
+
+      const range = selection.getRangeAt(0);
+      const containerNode =
+        range.commonAncestorContainer.nodeType === Node.TEXT_NODE
+          ? range.commonAncestorContainer.parentElement
+          : (range.commonAncestorContainer as HTMLElement | null);
+
+      if (contentRef.current && containerNode && !contentRef.current.contains(containerNode)) {
+        return;
+      }
+
+      let warning: string | null = null;
+      let normalized = text;
+
+      if (normalized.length > MAX_QUOTE_LENGTH) {
+        normalized = normalized.slice(0, MAX_QUOTE_LENGTH);
+        warning = `Quote truncated to ${MAX_QUOTE_LENGTH} characters.`;
+      } else if (normalized.length < MIN_QUOTE_LENGTH) {
+        warning = "Try selecting a little more text for better context.";
+      }
+
+      setQuoteWarning(warning);
+      setQuoteText(normalized);
+      const baseRect = range.getBoundingClientRect();
+      let rect = baseRect;
+      if (baseRect.width === 0 && baseRect.height === 0) {
+        const rects = range.getClientRects();
+        if (rects.length > 0) {
+          rect = rects[0];
+        }
+      }
+      const scrollY = window.scrollY || document.documentElement.scrollTop;
+      const scrollX = window.scrollX || document.documentElement.scrollLeft;
+      const top = Math.max(scrollY + 12, rect.top + scrollY - 16);
+      const left = rect.left + rect.width / 2 + scrollX;
+
+      setQuoteMenuPosition({ top, left });
+      setShowQuoteMenu(true);
+    };
+
+    const scheduleSelectionCheck = () => {
+      setTimeout(() => {
+        const selection = window.getSelection();
+        if (!selection || selection.isCollapsed || !selection.toString().trim()) {
+          return;
+        }
+        handleSelection();
+      }, 0);
+    };
+
+    const handleDocumentClick = (event: MouseEvent | TouchEvent) => {
+      if (!showQuoteMenu) {
+        return;
+      }
+      const target = event.target as Node | null;
+      if (!target) {
+        return;
+      }
+      const menuEl = document.querySelector("[data-quote-menu]");
+      if (menuEl && menuEl.contains(target)) {
+        return;
+      }
+      resetQuoteSelection();
+    };
+
+    const handleSelectionClear = () => {
+      const selection = window.getSelection();
+      if (!selection || selection.isCollapsed || !selection.toString().trim()) {
+        resetQuoteSelection();
+      }
+    };
+
+    document.addEventListener("mouseup", scheduleSelectionCheck);
+    document.addEventListener("touchend", scheduleSelectionCheck);
+      document.addEventListener("mousedown", handleDocumentClick);
+      document.addEventListener("touchstart", handleDocumentClick);
+      document.addEventListener("selectionchange", handleSelectionClear);
+
+      return () => {
+        document.removeEventListener("mouseup", scheduleSelectionCheck);
+        document.removeEventListener("touchend", scheduleSelectionCheck);
+        document.removeEventListener("mousedown", handleDocumentClick);
+        document.removeEventListener("touchstart", handleDocumentClick);
+        document.removeEventListener("selectionchange", handleSelectionClear);
+      };
+  }, [MAX_QUOTE_LENGTH, MIN_QUOTE_LENGTH, resetQuoteSelection, showQuoteMenu]);
+
   const setTocButtonRef =
     (index: number) => (node: HTMLButtonElement | null) => {
       tocButtonRefs.current[index] = node;
@@ -192,6 +313,34 @@ export function HomeTab() {
     });
     setTocAnchor(anchor);
   };
+
+  const handleQuoteShare = useCallback(async () => {
+    if (!quoteText) {
+      return;
+    }
+
+    if (!actions?.openUrl) {
+      setQuoteWarning("Opening links is not supported in this client.");
+      return;
+    }
+
+    try {
+      const shareUrl = `${APP_URL}/share/quote?text=${encodeURIComponent(
+        quoteText
+      )}`;
+      const castText = `"${quoteText}" — ${paperMetadata.author}, ${paperMetadata.title}`;
+
+      const composeUrl = new URL("https://farcaster.xyz/~/compose");
+      composeUrl.searchParams.set("text", castText);
+      composeUrl.searchParams.append("embeds[]", shareUrl);
+
+      await actions.openUrl(composeUrl.toString());
+      resetQuoteSelection();
+    } catch (error) {
+      console.error("Failed to open Farcaster compose", error);
+      setQuoteWarning("Something went wrong opening Farcaster. Please try again.");
+    }
+  }, [actions, quoteText, resetQuoteSelection]);
 
   const renderContentWithReferences = (text: string) => {
     const nodes: ReactNode[] = [];
@@ -337,10 +486,42 @@ export function HomeTab() {
   };
 
   return (
-    <div
-      className="w-full max-w-4xl mx-auto px-4 py-6 pb-24 relative"
-      ref={contentRef}
-    >
+    <>
+      {showQuoteMenu && quoteMenuPosition && (
+        <div
+          className="fixed z-50 flex flex-col items-center"
+          style={{
+            top: quoteMenuPosition.top,
+            left: quoteMenuPosition.left,
+            transform: "translate(-50%, -100%)",
+          }}
+        >
+          <div
+            data-quote-menu
+            className="flex h-10 w-10 items-center justify-center rounded-xl border border-base-300 bg-base-100 shadow-xl"
+          >
+            <button
+              type="button"
+              onClick={() => handleQuoteShare()}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-base-content transition hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
+              disabled={!quoteText || quoteText.length < MIN_QUOTE_LENGTH}
+              aria-label="Share quote on Farcaster"
+            >
+              <Quote className="h-4 w-4" />
+            </button>
+          </div>
+          {quoteWarning && (
+            <div className="mt-2 rounded-full bg-warning/10 px-3 py-1 text-xs font-medium text-warning backdrop-blur">
+              {quoteWarning}
+            </div>
+          )}
+        </div>
+      )}
+
+      <div
+        className="w-full max-w-4xl mx-auto px-4 py-6 pb-24 relative"
+        ref={contentRef}
+      >
       {/* Top Toolbar */}
       <div
         ref={toolbarRef}
@@ -576,5 +757,6 @@ export function HomeTab() {
         </p>
       </footer>
     </div>
+    </>
   );
 }
