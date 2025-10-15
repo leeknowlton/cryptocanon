@@ -1,10 +1,9 @@
 import { ImageResponse } from "next/og";
-import { NextRequest } from "next/server";
 import { APP_URL } from "~/lib/constants";
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   return new ImageResponse(
     (
       <div tw="flex h-full w-full items-center justify-center bg-white">

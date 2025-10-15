@@ -2,11 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useMiniApp } from "@neynar/react";
-import { Header } from "~/components/ui/Header";
-import { Footer } from "~/components/ui/Footer";
-import { HomeTab, ActionsTab, ContextTab, WalletTab } from "~/components/ui/tabs";
-import { USE_WALLET } from "~/lib/constants";
-import { useNeynarUser } from "../hooks/useNeynarUser";
+import { HomeTab } from "~/components/ui/tabs";
 import { X } from "lucide-react";
 
 // --- Types ---
@@ -50,22 +46,15 @@ export interface AppProps {
  * <App title="My Mini App" />
  * ```
  */
-export default function App(
-  { title }: AppProps = { title: "Neynar Starter Kit" }
-) {
+export default function App() {
   // --- Hooks ---
   const {
     isSDKLoaded,
     context,
     setInitialTab,
-    setActiveTab,
-    currentTab,
     added,
     actions,
   } = useMiniApp();
-
-  // --- Neynar user hook ---
-  const { user: neynarUser } = useNeynarUser(context || undefined);
 
   // --- State ---
   const [showAddPrompt, setShowAddPrompt] = useState(false);
@@ -89,18 +78,13 @@ export default function App(
    * Prompts the user to add the mini app if they haven't already.
    *
    * This effect checks if the mini app has been added and if the user
-   * has previously dismissed the prompt. If not, it shows a prompt
-   * after a short delay to add the mini app.
+   * has previously dismissed the prompt. If not, it shows the prompt immediately.
    */
   useEffect(() => {
     if (isSDKLoaded && !added) {
       const hasSeenPrompt = localStorage.getItem('hasSeenAddPrompt');
       if (!hasSeenPrompt) {
-        // Show prompt after a short delay to let the user see the content first
-        const timer = setTimeout(() => {
-          setShowAddPrompt(true);
-        }, 2000);
-        return () => clearTimeout(timer);
+        setShowAddPrompt(true);
       }
     }
   }, [isSDKLoaded, added]);
@@ -118,7 +102,7 @@ export default function App(
     setIsAddingMiniApp(true);
     try {
       const result = await actions.addMiniApp();
-      if (result.added && result.notificationDetails) {
+      if (result?.notificationDetails) {
         console.log('Mini app added with notifications enabled');
       }
       setShowAddPrompt(false);

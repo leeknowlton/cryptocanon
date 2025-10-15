@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Sun, Moon, X, Type, BookOpen, Scroll, ChevronDown, ChevronUp } from "lucide-react";
+import { Sun, Moon, X, Type, ChevronDown, ChevronUp } from "lucide-react";
 
 export interface SpacingSettings {
   lineSpacing: number;
@@ -42,7 +42,6 @@ export function ThemeSettings({
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [fontFamily, setFontFamily] = useState<"sans" | "serif">("sans");
-  const [readingMode, setReadingMode] = useState<"scroll" | "page">("scroll");
   const [mounted, setMounted] = useState(false);
 
   // Load preferences from localStorage on mount
@@ -50,20 +49,16 @@ export function ThemeSettings({
     setMounted(true);
     const savedTheme = localStorage.getItem("theme") as "light" | "dark" | null;
     const savedFont = localStorage.getItem("fontFamily") as "sans" | "serif" | null;
-    const savedMode = localStorage.getItem("readingMode") as "scroll" | "page" | null;
 
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
     const initialTheme = savedTheme || (prefersDark ? "dark" : "light");
     const initialFont = savedFont || "sans";
-    const initialMode = savedMode || "scroll";
 
     setTheme(initialTheme);
     setFontFamily(initialFont);
-    setReadingMode(initialMode);
 
     applyTheme(initialTheme);
     applyFont(initialFont);
-    applyReadingMode(initialMode);
   }, []);
 
   const applyTheme = (newTheme: "light" | "dark") => {
@@ -83,37 +78,6 @@ export function ThemeSettings({
       document.documentElement.classList.add("font-sans");
       document.documentElement.classList.remove("font-serif");
     }
-  };
-
-  const applyReadingMode = (newMode: "scroll" | "page") => {
-    if (newMode === "page") {
-      document.documentElement.classList.add("reading-page");
-      document.documentElement.classList.remove("reading-scroll");
-    } else {
-      document.documentElement.classList.add("reading-scroll");
-      document.documentElement.classList.remove("reading-page");
-    }
-  };
-
-  const toggleTheme = () => {
-    const newTheme = theme === "light" ? "dark" : "light";
-    setTheme(newTheme);
-    applyTheme(newTheme);
-    localStorage.setItem("theme", newTheme);
-  };
-
-  const toggleFont = () => {
-    const newFont = fontFamily === "sans" ? "serif" : "sans";
-    setFontFamily(newFont);
-    applyFont(newFont);
-    localStorage.setItem("fontFamily", newFont);
-  };
-
-  const toggleReadingMode = () => {
-    const newMode = readingMode === "scroll" ? "page" : "scroll";
-    setReadingMode(newMode);
-    applyReadingMode(newMode);
-    localStorage.setItem("readingMode", newMode);
   };
 
   const handleSpacingChange = (key: keyof SpacingSettings, value: number) => {
