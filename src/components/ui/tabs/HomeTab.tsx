@@ -9,7 +9,10 @@ import {
   sections,
   references,
 } from "~/lib/bitcoinPaper";
-import { ThemeSettings, type SpacingSettings } from "~/components/ui/ThemeSettings";
+import {
+  ThemeSettings,
+  type SpacingSettings,
+} from "~/components/ui/ThemeSettings";
 import { ElevenLabsAudioNative } from "~/components/ui/ElevenLabsAudioNative";
 
 /**
@@ -30,7 +33,9 @@ import { ElevenLabsAudioNative } from "~/components/ui/ElevenLabsAudioNative";
 export function HomeTab() {
   const [showToc, setShowToc] = useState(false);
   const [activeSection, setActiveSection] = useState<string>("");
-  const [fontSize, setFontSize] = useState<"small" | "medium" | "large">("medium");
+  const [fontSize, setFontSize] = useState<"small" | "medium" | "large">(
+    "medium"
+  );
   const [spacing, setSpacing] = useState<SpacingSettings>({
     lineSpacing: 1.75,
     characterSpacing: 0,
@@ -50,7 +55,11 @@ export function HomeTab() {
 
   // Load preferences from localStorage
   useEffect(() => {
-    const savedSize = localStorage.getItem("fontSize") as "small" | "medium" | "large" | null;
+    const savedSize = localStorage.getItem("fontSize") as
+      | "small"
+      | "medium"
+      | "large"
+      | null;
     const savedSpacing = localStorage.getItem("spacingSettings");
 
     if (savedSize) {
@@ -171,9 +180,10 @@ export function HomeTab() {
     };
   }, [showToc]);
 
-  const setTocButtonRef = (index: number) => (node: HTMLButtonElement | null) => {
-    tocButtonRefs.current[index] = node;
-  };
+  const setTocButtonRef =
+    (index: number) => (node: HTMLButtonElement | null) => {
+      tocButtonRefs.current[index] = node;
+    };
 
   const handleToggleToc = (anchor: "top" | "bottom") => {
     setShowToc((prev) => {
@@ -192,7 +202,11 @@ export function HomeTab() {
 
     while ((match = referencePattern.exec(text)) !== null) {
       if (match.index > lastIndex) {
-        nodes.push(<span key={`text-${partIndex++}`}>{text.slice(lastIndex, match.index)}</span>);
+        nodes.push(
+          <span key={`text-${partIndex++}`}>
+            {text.slice(lastIndex, match.index)}
+          </span>
+        );
       }
 
       const label = match[1];
@@ -227,7 +241,9 @@ export function HomeTab() {
     }
 
     if (lastIndex < text.length) {
-      nodes.push(<span key={`text-${partIndex++}`}>{text.slice(lastIndex)}</span>);
+      nodes.push(
+        <span key={`text-${partIndex++}`}>{text.slice(lastIndex)}</span>
+      );
     }
 
     return nodes;
@@ -321,9 +337,15 @@ export function HomeTab() {
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto px-4 py-6 pb-24 relative" ref={contentRef}>
+    <div
+      className="w-full max-w-4xl mx-auto px-4 py-6 pb-24 relative"
+      ref={contentRef}
+    >
       {/* Top Toolbar */}
-      <div ref={toolbarRef} className="flex items-center justify-end gap-3 mb-6">
+      <div
+        ref={toolbarRef}
+        className="flex items-center justify-end gap-3 mb-6"
+      >
         <button
           ref={setTocButtonRef(0)}
           onClick={() => handleToggleToc("top")}
@@ -436,7 +458,9 @@ export function HomeTab() {
       {/* Header */}
       <header className="mb-8 pb-6 border-b border-gray-200 dark:border-gray-700">
         {/* Title */}
-        <h1 className={`${headingClasses[fontSize].h1} font-bold leading-tight mb-3`}>
+        <h1
+          className={`${headingClasses[fontSize].h1} font-bold leading-tight mb-3`}
+        >
           {paperMetadata.title}
         </h1>
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm text-gray-600 dark:text-gray-400">
@@ -454,16 +478,20 @@ export function HomeTab() {
           <ExternalLink className="w-3.5 h-3.5" />
         </a>
         <div className="mt-4 w-full">
-          <ElevenLabsAudioNative
-            publicUserId="c7fa0888ce8d3d7f6f27a113361dcbd6cd738a8b68cef914c0bad17eaadb46a5"
-            projectId="BhzN7EOROKYuLAiJc8Iv"
-          />
+          <ElevenLabsAudioNative publicUserId="c7fa0888ce8d3d7f6f27a113361dcbd6cd738a8b68cef914c0bad17eaadb46a5" />
         </div>
       </header>
 
       {/* Abstract */}
-      <section id="abstract" data-section className="mb-10 scroll-mt-20" style={getContainerStyle()}>
-        <h2 className={`${headingClasses[fontSize].h2} font-bold mb-4`}>Abstract</h2>
+      <section
+        id="abstract"
+        data-section
+        className="mb-10 scroll-mt-20"
+        style={getContainerStyle()}
+      >
+        <h2 className={`${headingClasses[fontSize].h2} font-bold mb-4`}>
+          Abstract
+        </h2>
         <p
           className={`${fontSizeClasses[fontSize]} text-gray-800 dark:text-gray-200`}
           style={getTextStyle()}
@@ -481,7 +509,9 @@ export function HomeTab() {
           className="mb-10 scroll-mt-20"
           style={getContainerStyle()}
         >
-          <h2 className={`${headingClasses[fontSize].h2} font-bold mb-4`}>{section.title}</h2>
+          <h2 className={`${headingClasses[fontSize].h2} font-bold mb-4`}>
+            {section.title}
+          </h2>
           <div className="space-y-4">
             {section.content.map((paragraph, idx) => (
               <p
@@ -497,8 +527,15 @@ export function HomeTab() {
       ))}
 
       {/* References */}
-      <section id="references" data-section className="mb-10 scroll-mt-2" style={getContainerStyle()}>
-        <h2 className={`${headingClasses[fontSize].h2} font-bold mb-4`}>References</h2>
+      <section
+        id="references"
+        data-section
+        className="mb-10 scroll-mt-2"
+        style={getContainerStyle()}
+      >
+        <h2 className={`${headingClasses[fontSize].h2} font-bold mb-4`}>
+          References
+        </h2>
         <ol className="space-y-4">
           {references.map((ref) => (
             <li
@@ -510,7 +547,10 @@ export function HomeTab() {
               <span className="font-medium">[{ref.id}]</span>{" "}
               {renderReferenceText(ref)}{" "}
               <a
-                href={`#${firstRefOccurrenceRef.current[ref.id] || `ref-link-${ref.id}-0`}`}
+                href={`#${
+                  firstRefOccurrenceRef.current[ref.id] ||
+                  `ref-link-${ref.id}-0`
+                }`}
                 className="text-blue-600 dark:text-blue-400 hover:underline ml-1"
                 title={`Jump back to reference [${ref.id}]`}
               >
