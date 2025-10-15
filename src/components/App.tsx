@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useMiniApp } from "@neynar/react";
 import { HomeTab } from "~/components/ui/tabs";
-import { X } from "lucide-react";
 
 // --- Types ---
 export enum Tab {
@@ -56,10 +55,6 @@ export default function App() {
     actions,
   } = useMiniApp();
 
-  // --- State ---
-  const [showAddPrompt, setShowAddPrompt] = useState(false);
-  const [isAddingMiniApp, setIsAddingMiniApp] = useState(false);
-
   // --- Effects ---
   /**
    * Sets the initial tab to "home" when the SDK is loaded.
@@ -75,54 +70,34 @@ export default function App() {
   }, [isSDKLoaded, setInitialTab]);
 
   /**
-   * Prompts the user to add the mini app if they haven't already.
+   * Automatically adds the mini app on first load if not already added.
    *
-   * This effect checks if the mini app has been added and if the user
-   * has previously dismissed the prompt. If not, it shows the prompt immediately.
+   * This effect checks if the mini app has been added and if we've
+   * already attempted to add it. If not, it automatically calls
+   * addMiniApp() without showing any UI.
    */
   useEffect(() => {
-    if (isSDKLoaded && !added) {
-      const hasSeenPrompt = localStorage.getItem('hasSeenAddPrompt');
-      if (!hasSeenPrompt) {
-        setShowAddPrompt(true);
+    const attemptAddMiniApp = async () => {
+      if (isSDKLoaded && !added && actions.addMiniApp) {
+        const hasAttemptedAdd = localStorage.getItem('hasAttemptedAddMiniApp');
+        if (!hasAttemptedAdd) {
+          try {
+            const result = await actions.addMiniApp();
+            if (result?.notificationDetails) {
+              console.log('Mini app added with notifications enabled');
+            }
+            localStorage.setItem('hasAttemptedAddMiniApp', 'true');
+          } catch (error) {
+            console.error('Failed to add mini app:', error);
+            // Still mark as attempted to avoid repeated failures
+            localStorage.setItem('hasAttemptedAddMiniApp', 'true');
+          }
+        }
       }
-    }
-  }, [isSDKLoaded, added]);
+    };
 
-  // --- Handlers ---
-  /**
-   * Handles adding the mini app to the user's client.
-   *
-   * Calls the addMiniApp action and stores notification details if provided.
-   * On success or dismissal, marks the prompt as seen in localStorage.
-   */
-  const handleAddMiniApp = async () => {
-    if (!isSDKLoaded || !actions.addMiniApp) return;
-
-    setIsAddingMiniApp(true);
-    try {
-      const result = await actions.addMiniApp();
-      if (result?.notificationDetails) {
-        console.log('Mini app added with notifications enabled');
-      }
-      setShowAddPrompt(false);
-      localStorage.setItem('hasSeenAddPrompt', 'true');
-    } catch (error) {
-      console.error('Failed to add mini app:', error);
-    } finally {
-      setIsAddingMiniApp(false);
-    }
-  };
-
-  /**
-   * Dismisses the add mini app prompt.
-   *
-   * Hides the prompt and marks it as seen so it won't show again.
-   */
-  const handleDismissPrompt = () => {
-    setShowAddPrompt(false);
-    localStorage.setItem('hasSeenAddPrompt', 'true');
-  };
+    attemptAddMiniApp();
+  }, [isSDKLoaded, added, actions]);
 
   // --- Early Returns ---
   if (!isSDKLoaded) {
@@ -146,46 +121,6 @@ export default function App() {
         paddingRight: context?.client.safeAreaInsets?.right ?? 0,
       }}
     >
-      {/* Add Mini App Prompt */}
-      {showAddPrompt && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="relative mx-4 w-full max-w-md rounded-2xl border border-base-300 bg-base-100 p-6 shadow-2xl">
-            <button
-              onClick={handleDismissPrompt}
-              className="absolute right-4 top-4 rounded-lg p-1 text-base-content/60 hover:bg-base-200 hover:text-base-content"
-              aria-label="Dismiss"
-            >
-              <X className="h-5 w-5" />
-            </button>
-
-            <div className="mb-4 text-center">
-              <h2 className="text-2xl font-bold text-base-content mb-2">
-                Add to Your Mini Apps
-              </h2>
-              <p className="text-base-content/70">
-                Save the Bitcoin White Paper to your mini apps for quick access anytime.
-              </p>
-            </div>
-
-            <div className="space-y-3">
-              <button
-                onClick={handleAddMiniApp}
-                disabled={isAddingMiniApp}
-                className="w-full rounded-lg bg-primary px-4 py-3 font-semibold text-primary-content hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {isAddingMiniApp ? 'Adding...' : 'Add Mini App'}
-              </button>
-              <button
-                onClick={handleDismissPrompt}
-                className="w-full rounded-lg border border-base-300 bg-base-200 px-4 py-3 font-semibold text-base-content hover:bg-base-300"
-              >
-                Maybe Later
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Header should be full width */}
       {/* <Header neynarUser={neynarUser} /> */}
 
